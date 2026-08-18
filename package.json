@@ -1,0 +1,31 @@
+{
+  "name": "water-embodied-command-center",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/prepare-sites-build.mjs",
+    "preview": "vite preview",
+    "test:sites": "node --test tests/sites-worker.test.mjs",
+    "qa:visual": "node scripts/visual-qa.mjs",
+    "gateway": "node scripts/realtime-gateway.mjs",
+    "dev:realtime": "node scripts/dev-realtime.mjs",
+    "operator": "node scripts/operator-server.mjs",
+    "operator:open": "node scripts/operator-launcher.mjs",
+    "qa:operator": "node scripts/operator-browser-qa.mjs",
+    "test:gateway": "node scripts/gateway-smoke.mjs",
+    "qa:realtime": "node scripts/realtime-browser-qa.mjs"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "5.0.4",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-icons": "^5.6.0",
+    "three": "^0.185.1",
+    "vite": "6.4.2"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "platform": "water-embodied-command-center",
+  "mode": "integration",
+  "browserDirectControl": false,
+  "adapters": [
+    {
+      "id": "drone-edge-01",
+      "deviceType": "drone",
+      "protocol": "mavlink",
+      "endpoint": "udp://edge-gateway.example:14550",
+      "ingress": "POST /api/v1/ingest/telemetry",
+      "liveCommandRequires": ["mTLS", "operatorApproval", "geofenceValidation", "flightControllerAck"]
+    },
+    {
+      "id": "boat-broker-01",
+      "deviceType": "boat",
+      "protocol": "mqtt5",
+      "topic": "waterworks/usv/+/telemetry",
+      "ingress": "POST /api/v1/ingest/telemetry",
+      "liveCommandRequires": ["mTLS", "operatorApproval", "navigationSafetyAck"]
+    },
+    {
+      "id": "robot-ros-bridge-01",
+      "deviceType": "rover|dog",
+      "protocol": "ros2",
+      "ingress": "POST /api/v1/ingest/telemetry",
+      "liveCommandRequires": ["mTLS", "operatorApproval", "localEStopHealthy"]
+    }
+  ]
+}

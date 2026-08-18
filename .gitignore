@@ -1,0 +1,20 @@
+# Dependencies and build output (reproducible from package.json)
+node_modules/
+dist/
+
+# Runtime state and logs (contain machine-specific operating data)
+data/operator-state.json
+runtime-logs/
+*.log
+
+# Derived quality-assurance source renders
+qa/
+qa/source-pdf-pages/
+
+# Locally generated reporting artifacts; source and operational docs are in docs/
+deliverables/
+
+# Local operating-system and editor files
+.DS_Store
+Thumbs.db
+*.swp
