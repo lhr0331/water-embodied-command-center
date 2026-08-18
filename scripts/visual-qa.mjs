@@ -114,10 +114,13 @@ try {
   await page.getByRole("button", { name: "打开智能使用助手" }).click();
   const supportDialog = page.getByRole("dialog", { name: "智能使用助手" });
   await supportDialog.waitFor();
-  await supportDialog.getByRole("textbox", { name: "软件使用问题" }).fill("电子围栏怎么设置");
+  await supportDialog.getByRole("textbox", { name: "软件使用问题" }).fill("无人机如何接入，电子围栏怎么设置，告警出现后怎样处理？");
   await supportDialog.getByRole("button", { name: "询问" }).click();
+  await supportDialog.getByText("已识别关键词", { exact: true }).waitFor();
+  await supportDialog.locator(".support-answer strong", { hasText: "设备接入与边缘适配器" }).waitFor();
   await supportDialog.getByText("在左侧功能区点击“电子围栏”，填写区域名称并选择围栏类型。", { exact: true }).waitFor();
-  supportInteraction = { keywordQuestion: "电子围栏怎么设置", answered: true };
+  await supportDialog.getByText("点击右侧任意告警进入“事件管理”，先核验来源、位置、置信度和现场证据，再按预案确认、移交或发起协同任务申请。", { exact: true }).waitFor();
+  supportInteraction = { keywordQuestion: "无人机如何接入，电子围栏怎么设置，告警出现后怎样处理？", recognizedKeywords: await supportDialog.getByLabel("识别出的关键词").locator("i").allTextContents(), answered: true };
   await supportDialog.getByRole("button", { name: "关闭智能使用助手" }).click();
   await page.screenshot({ path: join(outputDir, "overview-1440x1024.png"), fullPage: true });
 
