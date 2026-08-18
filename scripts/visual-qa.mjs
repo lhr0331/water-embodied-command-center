@@ -17,6 +17,7 @@ let mapInteraction = null;
 let geofenceInteraction = null;
 let sensorInteraction = null;
 let utilityInteraction = null;
+let supportInteraction = null;
 
 if (!existsSync(edgePath)) {
   throw new Error(`Microsoft Edge was not found at ${edgePath}`);
@@ -110,6 +111,14 @@ try {
   await page.getByText(/实时网关健康：ok/).waitFor();
   utilityInteraction = { videoPanel: true, gatewayHealthCheck: true };
   await page.getByRole("button", { name: "关闭系统设置与运行状态" }).click();
+  await page.getByRole("button", { name: "打开智能使用助手" }).click();
+  const supportDialog = page.getByRole("dialog", { name: "智能使用助手" });
+  await supportDialog.waitFor();
+  await supportDialog.getByRole("textbox", { name: "软件使用问题" }).fill("电子围栏怎么设置");
+  await supportDialog.getByRole("button", { name: "询问" }).click();
+  await supportDialog.getByText("在左侧功能区点击“电子围栏”，填写区域名称并选择围栏类型。", { exact: true }).waitFor();
+  supportInteraction = { keywordQuestion: "电子围栏怎么设置", answered: true };
+  await supportDialog.getByRole("button", { name: "关闭智能使用助手" }).click();
   await page.screenshot({ path: join(outputDir, "overview-1440x1024.png"), fullPage: true });
 
   await page.getByRole("button", { name: /溢洪道左侧边坡位移/ }).click();
@@ -142,11 +151,12 @@ const summary = {
   baseUrl,
   viewport: "1440x1024 CSS pixels at deviceScaleFactor 1",
   screenshots: ["qa/overview-1440x1024.png", "qa/map-oblique-detail.png", "qa/geofence-custom.png", "qa/sensor-monitoring.png", "qa/video-panel.png", "qa/incident-1440x1024.png", "qa/planner-1440x1024.png", "qa/planner-filtered-published.png", "qa/overview-after-start.png"],
-  interactions: ["map-view-switch", "map-zoom", "map-drag", "geofence-draw-save-delete", "sensor-device-switch", "video-panel", "gateway-health-check", "alert-to-incident", "dispatch-task", "fleet-filter", "publish-plan", "start-simulation"],
+  interactions: ["map-view-switch", "map-zoom", "map-drag", "geofence-draw-save-delete", "sensor-device-switch", "video-panel", "gateway-health-check", "keyword-support", "alert-to-incident", "dispatch-task", "fleet-filter", "publish-plan", "start-simulation"],
   mapInteraction,
   geofenceInteraction,
   sensorInteraction,
   utilityInteraction,
+  supportInteraction,
   realtime: expectGateway ? { telemetryBefore, telemetryAfter } : { skipped: true },
   consoleErrors,
   responseFailures,

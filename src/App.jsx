@@ -435,6 +435,80 @@ function SettingsPanel({ connection, mode, updatedAt, onCheckGateway, onClose })
   </UtilityPanel>;
 }
 
+const supportTopics = [
+  {
+    id: "start",
+    label: "启动系统",
+    keywords: ["启动", "打开", "运行", "安装", "本地", "部署", "正式版", "演示版"],
+    lines: ["演示版：打开 GitHub Pages 客户链接即可体验全部功能，无需安装。", "本地演练：在项目目录执行 npm install，然后运行 npm run dev:realtime。", "正式入口：首次使用双击“首次部署正式系统.cmd”；后续双击“启动正式系统.cmd”。"],
+  },
+  {
+    id: "device",
+    label: "连接设备",
+    keywords: ["设备", "连接", "接入", "无人机", "无人船", "机器人", "机器狗", "mavlink", "mqtt", "ros", "飞控"],
+    lines: ["前端不直接控制飞控、电机或机器狗，设备必须先接入现场边缘适配器。", "无人机使用 MAVLink 2，无人船使用 MQTT 5，轮式机器人和机器狗使用 ROS 2。", "适配器将厂商数据转换为统一遥测接口；正式环境还需要操作者认证、围栏校验、审批和急停策略。"],
+  },
+  {
+    id: "map",
+    label: "三维地图",
+    keywords: ["地图", "三维", "3d", "拖动", "缩放", "旋转", "视角", "定位", "航测"],
+    lines: ["在地图空白区域按住鼠标左键拖动，可改变观察位置。", "使用滚轮或右上角 + / − 按钮缩放；“复位”可回到全局视角。", "通过正射、鸟瞰和大坝视角切换观察不同区域；点击设备标记可查看设备状态。"],
+  },
+  {
+    id: "fence",
+    label: "电子围栏",
+    keywords: ["围栏", "电子围栏", "禁入", "限高", "区域", "边界", "保存围栏"],
+    lines: ["在左侧功能区点击“电子围栏”，填写区域名称并选择围栏类型。", "点击“开始在地图点选”，在三维地图上连续选择至少 3 个边界点。", "点击“保存区域”即可写入演示数据；正式环境应由边缘网关同步至现场安全控制器。"],
+  },
+  {
+    id: "sensors",
+    label: "传感器与视频",
+    keywords: ["传感器", "监测", "水质", "温度", "电量", "视频", "画面", "摄像头", "数据"],
+    lines: ["点击“传感监测”可切换无人机、无人船、轮式机器人和机器狗，查看对应传感器读数。", "点击“实时画面”可查看演练视频预览；正式视频需由边缘视频网关提供经鉴权的流地址。", "演示版会自动刷新设备电量、链路、速度和环境读数；这些数据不代表真实现场设备。"],
+  },
+  {
+    id: "mission",
+    label: "告警与任务",
+    keywords: ["告警", "风险", "事件", "任务", "调度", "编排", "下达", "处置", "确认"],
+    lines: ["点击风险告警可进入事件处置，查看告警来源、证据和建议协同任务。", "在“协同编排”中筛选设备、发布计划并启动演练任务。", "公开演示版只会更新演练状态；真实任务必须由经过认证的边缘适配器接收，并经过人工审批。"],
+  },
+  {
+    id: "share",
+    label: "客户访问",
+    keywords: ["客户", "分享", "网址", "链接", "github", "网页", "在线", "访问"],
+    lines: ["客户演示链接可直接在浏览器打开，无需登录：lhr0331.github.io/water-embodied-command-center。", "GitHub Pages 用于公开演示和软件说明，不应放置真实设备密钥、现场账号或生产数据。", "若需面向中国大陆长期稳定交付，建议后续迁移至已备案的国内云服务器和自有域名。"],
+  },
+];
+
+const fallbackSupportAnswer = ["我可以回答本系统的使用问题。", "请尝试输入：如何启动、连接无人机、地图怎么拖动、如何添加电子围栏、查看传感器、下达任务或分享给客户。"];
+
+function KeywordSupport() {
+  const [open, setOpen] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [messages, setMessages] = useState([{ id: "welcome", role: "assistant", title: "智能使用助手", lines: ["您好，我可以根据关键词说明本系统各功能的使用方法。", "例如：如何连接无人机？电子围栏怎么设置？地图如何缩放？"] }]);
+
+  const reply = (rawQuestion) => {
+    const text = rawQuestion.trim();
+    if (!text) return;
+    const normalized = text.toLowerCase();
+    const matches = supportTopics.map((topic) => ({ topic, score: topic.keywords.reduce((score, keyword) => score + (normalized.includes(keyword.toLowerCase()) ? 1 : 0), 0) }));
+    const best = matches.sort((left, right) => right.score - left.score)[0];
+    const answer = best?.score ? { title: best.topic.label, lines: best.topic.lines } : { title: "使用指引", lines: fallbackSupportAnswer };
+    setMessages((current) => [...current, { id: `question-${Date.now()}`, role: "user", title: "您的问题", lines: [text] }, { id: `answer-${Date.now()}`, role: "assistant", ...answer }]);
+    setQuestion("");
+  };
+
+  return <>
+    {open && <aside className="support-panel" role="dialog" aria-label="智能使用助手">
+      <div className="support-head"><div><FaRobot /><span>智能使用助手</span><small>关键词使用指引 · 不连接真实设备</small></div><button className="icon-button" aria-label="关闭智能使用助手" onClick={() => setOpen(false)}><FaTimes /></button></div>
+      <div className="support-messages" aria-live="polite">{messages.map((message) => <article className={`support-message ${message.role}`} key={message.id}><b>{message.title}</b>{message.lines.map((line) => <p key={line}>{line}</p>)}</article>)}</div>
+      <div className="support-suggestions" aria-label="常见问题">{supportTopics.slice(0, 5).map((topic) => <button key={topic.id} onClick={() => reply(topic.label)}>{topic.label}</button>)}</div>
+      <form className="support-form" onSubmit={(event) => { event.preventDefault(); reply(question); }}><input value={question} onChange={(event) => setQuestion(event.target.value)} placeholder="请输入软件使用问题" aria-label="软件使用问题" /><button type="submit">询问</button></form>
+    </aside>}
+    <button className="support-launch" onClick={() => setOpen((current) => !current)} aria-label={open ? "关闭智能使用助手" : "打开智能使用助手"} aria-expanded={open}><FaRobot /><span>{open ? "关闭助手" : "智能客服"}</span></button>
+  </>;
+}
+
 function App() {
   const live = useLiveGateway();
   const [activeView, setActiveView] = useState("overview");
@@ -539,6 +613,7 @@ function App() {
       {utilityPanel === "video" && <VideoPanel devices={live.fleet} selectedDevice={selectedDevice} setSelectedDevice={setSelectedDevice} mode={live.mode} onClose={() => setUtilityPanel(null)} />}
       {utilityPanel === "settings" && <SettingsPanel connection={live.connection} mode={live.mode} updatedAt={live.updatedAt} onCheckGateway={checkGateway} onClose={() => setUtilityPanel(null)} />}
       {toast && <button className="toast" onClick={() => setToast("")}><FaCheckCircle />{toast}<FaTimes /></button>}
+      <KeywordSupport />
     </div>
   );
 }
