@@ -28,7 +28,8 @@ const isPublicDemoHost = () => {
   if (typeof window === "undefined") return false;
   return import.meta.env.VITE_PUBLIC_DEMO === "true"
     || new URLSearchParams(window.location.search).get("demo") === "1"
-    || window.location.hostname.endsWith(".chatgpt.site");
+    || window.location.hostname.endsWith(".chatgpt.site")
+    || window.location.hostname.endsWith(".github.io");
 };
 
 const readDemoFences = () => {
