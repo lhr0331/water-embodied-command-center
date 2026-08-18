@@ -478,8 +478,8 @@ function App() {
     if (fenceDraft.points.length < 3) { setToast("电子围栏至少需要 3 个边界点。"); return; }
     const name = fenceDraft.name.trim();
     try {
-      const response = await fetch("/api/v1/geofences", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fence: { name, type: fenceDraft.type, points: fenceDraft.points } }) });
-      const result = await response.json();
+      const result = await live.saveGeofence({ name, type: fenceDraft.type, points: fenceDraft.points });
+      const response = { ok: result.ok };
       if (!response.ok || !result.accepted) { setToast(result.error || result.reason || "电子围栏保存失败。"); return; }
       setFences(result.fences || []);
       setFenceDraft({ name: "", type: "noEntry", points: [] });
@@ -489,8 +489,8 @@ function App() {
   };
   const deleteFence = async (id) => {
     try {
-      const response = await fetch("/api/v1/geofences/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
-      const result = await response.json();
+      const result = await live.deleteGeofence(id);
+      const response = { ok: result.ok };
       if (!response.ok || !result.accepted) { setToast(result.error || result.reason || "电子围栏删除失败。"); return; }
       setFences(result.fences || []);
       setToast("电子围栏已从网关删除，下一次任务校验将不再使用该区域。");
@@ -498,8 +498,8 @@ function App() {
   };
   const checkGateway = async () => {
     try {
-      const response = await fetch("/health");
-      const status = await response.json();
+      const status = await live.checkGateway();
+      const response = { ok: status.ok };
       setToast(response.ok ? `实时网关健康：${status.status}，当前连接 ${status.clients} 个客户端。` : "实时网关健康检查未通过。");
     } catch { setToast("无法连接实时网关，请检查本地服务。"); }
   };
